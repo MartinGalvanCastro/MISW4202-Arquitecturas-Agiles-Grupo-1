@@ -1,0 +1,1 @@
+from .estado_servicio import set_fallar, get_fallar, INSTANCE_TYPE
