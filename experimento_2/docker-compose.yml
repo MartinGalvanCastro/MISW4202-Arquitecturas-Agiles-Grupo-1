@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  api_gateway:
+    build: ./api_gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+    networks:
+      app-network:
+        aliases:
+          - api_gateway
+
+  gestor_incidentes_principal:
+    build: ./gestor_incidentes
+    ports:
+      - "5001:5000"
+    environment:
+      - INSTANCE_TYPE=principal
+    networks:
+      app-network:
+        aliases:
+          - gestor_incidentes_principal
+
+  gestor_incidentes_respaldo:
+    build: ./gestor_incidentes
+    ports:
+      - "5002:5000"
+    environment:
+      - INSTANCE_TYPE=respaldo
+    networks:
+      app-network:
+        aliases:
+          - gestor_incidentes_respaldo
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards  # Montar los JSON de los dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/alerting:/etc/grafana/provisioning/alerting
+      - ./grafana/provisioning/default.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml  # Montar el archivo YAML
+    networks:
+      - app-network
+    depends_on:
+      - prometheus
+
+
+volumes:
+  sqlite_data:
+  grafana_data:
+
+networks:
+  app-network:
+    driver: bridge

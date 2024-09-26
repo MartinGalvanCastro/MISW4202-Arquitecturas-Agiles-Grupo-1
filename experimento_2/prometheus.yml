@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'api_gateway'
+    static_configs:
+      - targets: ['api_gateway:5000']
+
+  - job_name: 'gestor_incidentes_principal'
+    static_configs:
+      - targets: ['gestor_incidentes_principal:5000']
+
+  - job_name: 'gestor_incidentes_respaldo'
+    static_configs:
+      - targets: ['gestor_incidentes_respaldo:5000']
