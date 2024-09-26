@@ -2,62 +2,47 @@ version: '3'
 
 services:
   api_gateway:
-    build: ./api_gateway
+    build:
+      context: ./api_gateway
     ports:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
     networks:
-      app-network:
-        aliases:
-          - api_gateway
+      - app-network
+    depends_on:
+      - tampering
+      - auth
 
   gestor_incidentes_principal:
-    build: ./gestor_incidentes
+    build:
+      context: ./gestor_incidentes
     ports:
       - "5001:5000"
     environment:
       - INSTANCE_TYPE=principal
     networks:
-      app-network:
-        aliases:
-          - gestor_incidentes_principal
+      - app-network
 
-  gestor_incidentes_respaldo:
-    build: ./gestor_incidentes
+  auth:
+    build:
+      context: ./auth
     ports:
       - "5002:5000"
     environment:
-      - INSTANCE_TYPE=respaldo
-    networks:
-      app-network:
-        aliases:
-          - gestor_incidentes_respaldo
-
-  prometheus:
-    image: prom/prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
+      - FLASK_ENV=production
     networks:
       - app-network
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
+  tampering:
+    build:
+      context: ./tampering
     ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards  # Montar los JSON de los dashboards
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/provisioning/alerting:/etc/grafana/provisioning/alerting
-      - ./grafana/provisioning/default.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml  # Montar el archivo YAML
+      - "5003:5000"
     networks:
       - app-network
     depends_on:
-      - prometheus
+      - gestor_incidentes_principal
 
 
 volumes:
